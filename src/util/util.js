@@ -41,3 +41,15 @@ export async function deleteLocalFiles(files) {
     fs.unlinkSync(file);
   }
 }
+
+/**
+ * @param {String} url
+ */
+export function validateUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

@@ -1,5 +1,6 @@
 import bodyParser from "body-parser";
 import express from "express";
+import { deleteLocalFiles, filterImageFromURL, validateUrl } from "./util/util.js";
 
 // Init the Express application
 const app = express();
@@ -24,6 +25,30 @@ app.use(bodyParser.json());
 // RETURNS
 //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
+app.get("/filteredimage", async function (req, res) {
+  const imageUrl = req.query.image_url;
+
+  // 1. validate the image_url query
+  if (!validateUrl(imageUrl)) {
+    res.status(400).send("Invalid image url");
+    return;
+  }
+
+  // 2. call filterImageFromURL(image_url) to filter the image
+  filterImageFromURL(imageUrl)
+    .then((filteredpath) => {
+      // 3. send the resulting file in the response
+      res.sendFile(filteredpath);
+
+      // 4. deletes any files on the server on finish of the response
+      res.on("finish", async function () {
+        await deleteLocalFiles([filteredpath]);
+      });
+    })
+    .catch((e) => {
+      res.status(422).send("Unable to filter image");
+    });
+});
 /**************************************************************************** */
 
 //! END @TODO1
